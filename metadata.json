@@ -1,0 +1,6 @@
+{
+  "name": "sixbravo",
+  "description": "An intelligent full-stack portal inspired by Yahoo. Built with React and Express, featuring grounded AI search, world-class news summarizers, stock tickers, interactive charts, paper trading, personalized daily digests, and an AI Mail Assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

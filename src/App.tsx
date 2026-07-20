@@ -6,6 +6,7 @@ import FinanceSection from "./components/FinanceSection";
 import WeatherSection from "./components/WeatherSection";
 import HoroscopeWidget from "./components/HoroscopeWidget";
 import ArticleDetailView from "./components/ArticleDetailView";
+import PrivacyPolicyView from "./components/PrivacyPolicyView";
 import { INITIAL_NEWS, INITIAL_STOCKS } from "./mockData";
 import { StockInfo } from "./types";
 import { Home, Newspaper, TrendingUp, CloudSun, Sparkles, User, Settings, ArrowUpRight, ArrowDownRight, Info } from "lucide-react";
@@ -19,10 +20,16 @@ export default function App() {
     return params.get("article");
   });
 
+  const [activePage, setActivePage] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("page");
+  });
+
   useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       setActiveArticleId(params.get("article"));
+      setActivePage(params.get("page"));
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
@@ -30,8 +37,10 @@ export default function App() {
 
   const handleOpenArticle = (id: string) => {
     setActiveArticleId(id);
+    setActivePage(null);
     const params = new URLSearchParams(window.location.search);
     params.set("article", id);
+    params.delete("page");
     window.history.pushState(null, "", "?" + params.toString());
   };
 
@@ -39,6 +48,22 @@ export default function App() {
     setActiveArticleId(null);
     const url = new URL(window.location.href);
     url.searchParams.delete("article");
+    window.history.pushState(null, "", url.pathname + url.search);
+  };
+
+  const handleOpenPage = (page: string) => {
+    setActivePage(page);
+    setActiveArticleId(null);
+    const params = new URLSearchParams(window.location.search);
+    params.set("page", page);
+    params.delete("article");
+    window.history.pushState(null, "", "?" + params.toString());
+  };
+
+  const handleClosePage = () => {
+    setActivePage(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("page");
     window.history.pushState(null, "", url.pathname + url.search);
   };
   
@@ -74,6 +99,14 @@ export default function App() {
       <ArticleDetailView
         article={currentArticle}
         onBack={handleCloseArticle}
+      />
+    );
+  }
+
+  if (activePage === "privacy-policy") {
+    return (
+      <PrivacyPolicyView
+        onBack={handleClosePage}
       />
     );
   }
@@ -181,6 +214,7 @@ export default function App() {
 
             <div className="pt-4 border-t border-slate-100 mt-4 px-3 text-[10px] text-slate-400 font-medium space-y-1">
               <p>© 2026 sixbravo Inc.</p>
+              <button onClick={() => handleOpenPage("privacy-policy")} className="hover:underline">Privacy Policy</button>
             </div>
           </nav>
         </aside>

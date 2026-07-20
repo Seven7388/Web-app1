@@ -4,7 +4,6 @@ import SearchSection from "./components/SearchSection";
 import NewsSection from "./components/NewsSection";
 import FinanceSection from "./components/FinanceSection";
 import WeatherSection from "./components/WeatherSection";
-import BriefingWidget from "./components/BriefingWidget";
 import HoroscopeWidget from "./components/HoroscopeWidget";
 import ArticleDetailView from "./components/ArticleDetailView";
 import { INITIAL_NEWS, INITIAL_STOCKS } from "./mockData";
@@ -195,14 +194,6 @@ export default function App() {
                 {/* Left col span: Personalized AI Briefing and Headline Stories */}
                 <div className="lg:col-span-2 space-y-6">
                   
-                  {/* Centralized AI Personalized Daily Briefing */}
-                  <BriefingWidget
-                    currentCity={currentCity}
-                    currentTemp={currentTemp}
-                    currentCondition={currentCondition}
-                    watchlist={stocks}
-                  />
-
                   {/* Concise News Preview inside Home Tab */}
                   <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
                     <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3.5 mb-4">
@@ -266,17 +257,6 @@ export default function App() {
                           </div>
                         );
                       })}
-                    </div>
-                  </div>
-
-                  {/* 3. Small Info Block */}
-                  <div className="p-4 bg-indigo-50/30 border border-indigo-100/50 rounded-2xl flex items-start gap-3 text-left">
-                    <Info className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
-                    <div>
-                      <h5 className="text-xs font-extrabold text-indigo-900 leading-none">Did you know?</h5>
-                      <p className="text-[10px] text-indigo-700/80 leading-relaxed mt-1.5">
-                        SixBravo's Search is fully grounded with Google Search Core on the server, meaning it fetches live current parameters instead of relying purely on historical weights.
-                      </p>
                     </div>
                   </div>
 

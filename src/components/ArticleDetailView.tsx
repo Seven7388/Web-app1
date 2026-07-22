@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { NewsArticle } from "../types";
 import { ArrowLeft, Calendar, User, Eye, Share2, Bookmark, Flame, ThumbsUp, MessageSquare } from "lucide-react";
 
@@ -8,10 +8,34 @@ interface ArticleDetailViewProps {
 }
 
 export default function ArticleDetailView({ article, onBack }: ArticleDetailViewProps) {
-  // Scroll to top when article loads
+  const [storyContent, setStoryContent] = useState(article.content);
+
+  // Scroll to top when article loads and expand story if snippet is short
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [article.id]);
+    setStoryContent(article.content);
+
+    // If story is a short snippet (< 350 chars or single paragraph), silently expand in background
+    if (!article.content || article.content.length < 350 || !article.content.includes("\n\n")) {
+      fetch("/api/news/expand", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: article.title,
+          content: article.content,
+          category: article.category,
+          source: article.source
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.expandedContent) {
+            setStoryContent(data.expandedContent);
+          }
+        })
+        .catch(err => console.error("Background expansion error:", err));
+    }
+  }, [article.id, article.content]);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -103,7 +127,7 @@ export default function ArticleDetailView({ article, onBack }: ArticleDetailView
 
         {/* Body content with paragraphs & embedded related media */}
         <div className="text-slate-800 text-base leading-relaxed space-y-6">
-          {article.content.split("\n\n").map((paragraph, idx) => (
+          {(storyContent || article.content || "").split("\n\n").map((paragraph, idx) => (
             <React.Fragment key={idx}>
               <p className="text-slate-700 font-normal leading-relaxed text-sm md:text-base">
                 {paragraph}

@@ -19,7 +19,7 @@ export default function SearchSection({ query, onBackToHome, onSearch }: SearchS
     "Broadcasting search queries to global indexes...",
     "Retrieving grounded web references...",
     "Consulting sixbravo smart directory...",
-    "Synthesizing high-fidelity summary with Gemini...",
+    "Synthesizing high-fidelity portal summary...",
     "Verifying real-time citations and security clearances..."
   ];
 

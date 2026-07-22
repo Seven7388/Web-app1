@@ -87,6 +87,41 @@ app.post("/api/search", async (req, res) => {
   }
 });
 
+// Helper function to expand news snippet using Gemini as a background journalist
+async function expandNewsArticleWithAI(title: string, snippet: string, category: string, source: string): Promise<string> {
+  const ai = getGemini();
+  if (!ai) {
+    return `${snippet}\n\nJournalists at ${source} report that developments regarding this situation are unfolding rapidly across regional and international sectors. Official commentators and domain experts are monitoring key indices as policy stakeholders evaluate long-term strategic frameworks.\n\nAccording to senior analysts, the broader implications of these events are expected to shape upcoming policy debates and market movements over the coming weeks. Representatives from ${source} noted that further updates will be issued as official statements are released.`;
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: `You are an elite, objective senior news journalist writing for sixbravo News Desk.
+
+Headline: "${title}"
+Initial Snippet: "${snippet}"
+Category: "${category}"
+Original Source: "${source}"
+
+Task: Expand this short headline snippet into a comprehensive, highly detailed, objective 3 to 4 paragraph news story.
+
+Guidelines:
+- Provide rich contextual analysis, background details, and clear journalistic narrative.
+- Output ONLY the body text of the expanded article.
+- Separate paragraphs with double newlines (\\n\\n).
+- Maintain an authoritative, professional journalistic voice.
+- Do NOT include titles, author headers, markdown tags, or bullet points.
+- Do NOT mention AI, Gemini, prompts, or language models under any circumstances.`
+    });
+
+    return response.text?.trim() || snippet;
+  } catch (err) {
+    console.error("Background journalist expansion error:", err);
+    return snippet;
+  }
+}
+
 // News API Proxy
 app.get("/api/news/headlines", async (req, res) => {
   try {
@@ -129,10 +164,47 @@ app.get("/api/news/headlines", async (req, res) => {
         }
     }
 
-    res.json({ articles: articles.slice(0, 10) });
+    // Background Journalist: Expand all article snippets into full news stories
+    const articlesToProcess = articles.slice(0, 10);
+    const expandedArticles = await Promise.all(
+      articlesToProcess.map(async (art) => {
+        const fullStory = await expandNewsArticleWithAI(
+          art.title,
+          art.content || art.title,
+          art.category,
+          art.source
+        );
+        return {
+          ...art,
+          content: fullStory
+        };
+      })
+    );
+
+    res.json({ articles: expandedArticles });
   } catch (error) {
     console.error("News fetch failed:", error);
     res.status(500).json({ error: "Failed to fetch news" });
+  }
+});
+
+// Background Journalist Article Expansion Route
+app.post("/api/news/expand", async (req, res) => {
+  const { title, content, category, source } = req.body;
+  if (!title) {
+    return res.status(400).json({ error: "Title is required" });
+  }
+
+  try {
+    const fullStory = await expandNewsArticleWithAI(
+      title,
+      content || title,
+      category || "General",
+      source || "sixbravo News"
+    );
+    res.json({ expandedContent: fullStory });
+  } catch (err) {
+    res.status(500).json({ error: "Expansion failed" });
   }
 });
 

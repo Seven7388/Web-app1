@@ -7,7 +7,7 @@ import WeatherSection from "./components/WeatherSection";
 import HoroscopeWidget from "./components/HoroscopeWidget";
 import ArticleDetailView from "./components/ArticleDetailView";
 import PrivacyPolicyView from "./components/PrivacyPolicyView";
-import { INITIAL_NEWS, INITIAL_STOCKS } from "./mockData";
+import { INITIAL_STOCKS } from "./mockData";
 import { StockInfo } from "./types";
 import { Home, Newspaper, TrendingUp, CloudSun, Sparkles, User, Settings, ArrowUpRight, ArrowDownRight, Info } from "lucide-react";
 
@@ -83,6 +83,19 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_STOCKS;
   });
 
+  const [news, setNews] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/news/headlines")
+      .then(res => res.json())
+      .then(data => {
+        if(data.articles && data.articles.length > 0) {
+            setNews(data.articles);
+        }
+      })
+      .catch(err => console.error("Failed to fetch news", err));
+  }, []);
+
   useEffect(() => {
     localStorage.setItem("sixbravo_weather_city", currentCity);
     localStorage.setItem("sixbravo_weather_temp", currentTemp.toString());
@@ -92,7 +105,7 @@ export default function App() {
     localStorage.setItem("sixbravo_stocks_index", JSON.stringify(stocks));
   }, [stocks]);
 
-  const currentArticle = INITIAL_NEWS.find(a => a.id === activeArticleId);
+  const currentArticle = news.find(a => a.id === activeArticleId);
 
   if (currentArticle) {
     return (
@@ -242,7 +255,7 @@ export default function App() {
                         <ArrowUpRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    <NewsSection articles={INITIAL_NEWS} onSelectArticle={handleOpenArticle} />
+                    <NewsSection articles={news} onSelectArticle={handleOpenArticle} />
                   </div>
                 </div>
 
@@ -306,7 +319,7 @@ export default function App() {
                 <h3 className="text-xl font-black text-slate-900 tracking-tight">sixbravo Editorial News</h3>
                 <p className="text-xs text-slate-400 mt-1 font-medium">Real-time global reporting across politics, tech, finance, and entertainment.</p>
               </div>
-              <NewsSection articles={INITIAL_NEWS} onSelectArticle={handleOpenArticle} />
+              <NewsSection articles={news} onSelectArticle={handleOpenArticle} />
             </div>
           )}
 

@@ -87,6 +87,55 @@ app.post("/api/search", async (req, res) => {
   }
 });
 
+// News API Proxy
+app.get("/api/news/headlines", async (req, res) => {
+  try {
+    const newsApiKey = process.env.NEWS_API_KEY;
+    const currentsApiKey = process.env.CURRENTS_API_KEY;
+
+    let articles: any[] = [];
+
+    if (newsApiKey) {
+        // Fetch from TheNewsAPI
+        const response = await fetch(`https://api.thenewsapi.com/v1/news/top?api_token=${newsApiKey}&language=en&limit=5`);
+        const data = await response.json();
+        if (data.data) {
+            articles.push(...data.data.map((art: any) => ({
+                id: art.uuid,
+                title: art.title,
+                content: art.description,
+                imageUrl: art.image_url,
+                source: art.source,
+                category: art.categories[0] || "General",
+                time: "Recently"
+            })));
+        }
+    }
+
+    if (currentsApiKey) {
+        // Fetch from Currents API
+        const response = await fetch(`https://api.currentsapi.services/v1/latest-news?language=en&apiKey=${currentsApiKey}`);
+        const data = await response.json();
+        if (data.news) {
+            articles.push(...data.news.map((art: any) => ({
+                id: art.id,
+                title: art.title,
+                content: art.description,
+                imageUrl: art.image,
+                source: art.author || "Currents",
+                category: art.category[0] || "General",
+                time: "Recently"
+            })));
+        }
+    }
+
+    res.json({ articles: articles.slice(0, 10) });
+  } catch (error) {
+    console.error("News fetch failed:", error);
+    res.status(500).json({ error: "Failed to fetch news" });
+  }
+});
+
 // 2. AI News Summarizer Route
 app.post("/api/news/summarize", async (req, res) => {
   const { title, content } = req.body;

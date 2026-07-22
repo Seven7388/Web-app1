@@ -138,9 +138,13 @@ app.get("/api/news/headlines", async (req, res) => {
   try {
     const worldNewsApiKey = process.env.WORLD_NEWS_API_KEY || "849dc762be924ca1a5d3159773975bb0";
     const newsDataApiKey = process.env.NEWSDATA_API_KEY || "pub_2e9086fb4c504189aeda50f4a73668d4";
+    const currentsApiKey = process.env.CURRENTS_API_KEY || "FxenpFkFGgabIyvaP05YMkYkm9IQzuP6B_JJlZDAO-wpTUDM";
+    const theNewsApiKey = process.env.THENEWS_API_KEY || "sxX0BHciBmEl7rKlirjO7CgDPmcsCBxasxQAlKmu";
 
     let worldNewsArticles: any[] = [];
     let newsDataArticles: any[] = [];
+    let currentsArticles: any[] = [];
+    let theNewsArticles: any[] = [];
 
     if (worldNewsApiKey) {
         // Fetch from World News API
@@ -176,9 +180,55 @@ app.get("/api/news/headlines", async (req, res) => {
         }
     }
 
+    if (currentsApiKey) {
+        try {
+            const response = await fetch(`https://api.currentsapi.services/v1/latest-news?language=en`, {
+                headers: {
+                    "Authorization": currentsApiKey
+                }
+            });
+            const data = await response.json();
+            if (data.news) {
+                currentsArticles.push(...data.news.map((art: any) => ({
+                    id: art.id,
+                    title: art.title,
+                    content: art.description,
+                    imageUrl: art.image,
+                    source: art.author || "Currents",
+                    category: art.category ? art.category.join(", ") : "General",
+                    time: "Recently"
+                })));
+            }
+        } catch (e) {
+            console.error("Currents API error:", e);
+        }
+    }
+
+    if (theNewsApiKey) {
+        try {
+            const response = await fetch(`https://api.thenewsapi.com/v1/news/all?api_token=${theNewsApiKey}&language=en`);
+            const data = await response.json();
+            if (data.data) {
+                theNewsArticles.push(...data.data.map((art: any) => ({
+                    id: art.uuid,
+                    title: art.title,
+                    content: art.description || art.snippet,
+                    imageUrl: art.image_url,
+                    source: art.source || "TheNewsAPI",
+                    category: "General",
+                    time: "Recently"
+                })));
+            }
+        } catch (e) {
+            console.error("TheNewsAPI error:", e);
+        }
+    }
+
     const articles = [
         ...worldNewsArticles.slice(0, 5),
-        ...newsDataArticles.slice(0, 5)
+        ...newsDataArticles.slice(0, 5),
+        ...currentsArticles.slice(0, 5),
+        ...theNewsArticles.slice(0, 5)
     ];
 
     // Background Journalist: Expand all article snippets into full news stories

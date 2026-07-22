@@ -125,40 +125,40 @@ Guidelines:
 // News API Proxy
 app.get("/api/news/headlines", async (req, res) => {
   try {
-    const newsApiKey = process.env.NEWS_API_KEY;
-    const currentsApiKey = process.env.CURRENTS_API_KEY;
+    const worldNewsApiKey = process.env.WORLD_NEWS_API_KEY || "849dc762be924ca1a5d3159773975bb0";
+    const newsDataApiKey = process.env.NEWSDATA_API_KEY || "pub_2e9086fb4c504189aeda50f4a73668d4";
 
     let articles: any[] = [];
 
-    if (newsApiKey) {
-        // Fetch from TheNewsAPI
-        const response = await fetch(`https://api.thenewsapi.com/v1/news/top?api_token=${newsApiKey}&language=en&limit=5`);
+    if (worldNewsApiKey) {
+        // Fetch from World News API
+        const response = await fetch(`https://api.worldnewsapi.com/top-news?source-country=us&language=en&api-key=${worldNewsApiKey}`);
         const data = await response.json();
-        if (data.data) {
-            articles.push(...data.data.map((art: any) => ({
-                id: art.uuid,
+        if (data.top_news && data.top_news.length > 0 && data.top_news[0].news) {
+            articles.push(...data.top_news[0].news.map((art: any) => ({
+                id: String(art.id) || art.url,
                 title: art.title,
-                content: art.description,
-                imageUrl: art.image_url,
-                source: art.source,
-                category: art.categories[0] || "General",
+                content: art.text,
+                imageUrl: art.image,
+                source: art.author || "World News",
+                category: "General",
                 time: "Recently"
             })));
         }
     }
 
-    if (currentsApiKey) {
-        // Fetch from Currents API
-        const response = await fetch(`https://api.currentsapi.services/v1/latest-news?language=en&apiKey=${currentsApiKey}`);
+    if (newsDataApiKey) {
+        // Fetch from NewsData.io
+        const response = await fetch(`https://newsdata.io/api/1/latest?apikey=${newsDataApiKey}&language=en`);
         const data = await response.json();
-        if (data.news) {
-            articles.push(...data.news.map((art: any) => ({
-                id: art.id,
+        if (data.results) {
+            articles.push(...data.results.map((art: any) => ({
+                id: art.article_id,
                 title: art.title,
-                content: art.description,
-                imageUrl: art.image,
-                source: art.author || "Currents",
-                category: art.category[0] || "General",
+                content: art.description || art.content,
+                imageUrl: art.image_url,
+                source: art.source_id || "NewsData",
+                category: art.category ? art.category[0] : "General",
                 time: "Recently"
             })));
         }

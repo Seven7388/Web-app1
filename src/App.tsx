@@ -7,8 +7,6 @@ import WeatherSection from "./components/WeatherSection";
 import HoroscopeWidget from "./components/HoroscopeWidget";
 import ArticleDetailView from "./components/ArticleDetailView";
 import PrivacyPolicyView from "./components/PrivacyPolicyView";
-import { INITIAL_STOCKS } from "./mockData";
-import { StockInfo } from "./types";
 import { Home, Newspaper, TrendingUp, CloudSun, Sparkles, User, Settings, ArrowUpRight, ArrowDownRight, Info } from "lucide-react";
 
 export default function App() {
@@ -77,12 +75,6 @@ export default function App() {
   });
   const [currentCondition, setCurrentCondition] = useState<string>("Rainy");
 
-  // Shared Stocks index state
-  const [stocks, setStocks] = useState<StockInfo[]>(() => {
-    const saved = localStorage.getItem("sixbravo_stocks_index");
-    return saved ? JSON.parse(saved) : INITIAL_STOCKS;
-  });
-
   const [news, setNews] = useState<any[]>([]);
 
   useEffect(() => {
@@ -100,10 +92,6 @@ export default function App() {
     localStorage.setItem("sixbravo_weather_city", currentCity);
     localStorage.setItem("sixbravo_weather_temp", currentTemp.toString());
   }, [currentCity, currentTemp]);
-
-  useEffect(() => {
-    localStorage.setItem("sixbravo_stocks_index", JSON.stringify(stocks));
-  }, [stocks]);
 
   const currentArticle = news.find(a => a.id === activeArticleId);
 
@@ -263,39 +251,7 @@ export default function App() {
                   {/* 1. Horoscope Prediction */}
                   <HoroscopeWidget />
 
-                  {/* 2. Mini Stock Market watchlist panel */}
-                  <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm text-left">
-                    <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 mb-3">
-                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                        Markets quick-look
-                      </h4>
-                    </div>
 
-                    <div className="space-y-2.5">
-                      {stocks.slice(0, 4).map(stk => {
-                        const isUp = stk.change >= 0;
-                        return (
-                          <div
-                            key={stk.symbol}
-                            className="flex items-center justify-between p-2.5 bg-slate-50/50 rounded-xl transition-colors border border-transparent"
-                          >
-                            <div>
-                              <p className="text-xs font-black text-gray-950 font-mono leading-none">{stk.symbol}</p>
-                              <p className="text-[9px] text-slate-400 mt-1 leading-none truncate max-w-[120px]">{stk.name}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs font-bold text-gray-950 font-mono leading-none">${stk.price.toFixed(2)}</p>
-                              <span className={`inline-flex items-center gap-0.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md mt-1 ${
-                                isUp ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
-                              }`}>
-                                {isUp ? "+" : ""}{stk.changePercent.toFixed(2)}%
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
 
                 </div>
 

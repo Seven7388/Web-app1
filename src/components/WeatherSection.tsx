@@ -149,7 +149,7 @@ export default function WeatherSection({ currentCity, onChangeCity }: WeatherSec
           </span>
           <h3 className="text-xl font-black text-slate-900 tracking-tight mt-1.5 flex items-center gap-1.5">
             <MapPin className="w-5 h-5 text-indigo-600" />
-            sixbravo Weather Radar
+            Global Weather Radar
           </h3>
         </div>
 
@@ -232,7 +232,7 @@ export default function WeatherSection({ currentCity, onChangeCity }: WeatherSec
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <h5 className="text-xs font-black text-amber-800 uppercase tracking-wider">sixbravo AI Weather intelligence</h5>
+                  <h5 className="text-xs font-black text-amber-800 uppercase tracking-wider">Global AI Weather intelligence</h5>
                   <p className="text-[10px] text-amber-600">Dynamic lifestyle analysis for {weather.city}</p>
                 </div>
               </div>

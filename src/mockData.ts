@@ -6,7 +6,7 @@ export const INITIAL_NEWS: NewsArticle[] = [
   {
     id: "july-2026-geopolitical-reset",
     title: "Chokepoints and Circuit Breakers: The July 2026 Geopolitical Reset",
-    source: "sixbravo World",
+    source: "Global World",
     time: "Just now",
     category: "World",
     imageUrl: "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=800&q=80",
@@ -15,7 +15,7 @@ export const INITIAL_NEWS: NewsArticle[] = [
   {
     id: "spain-wins-world-cup-2026",
     title: "Spain Wins Second World Cup Title as Ferran Torres Silences Messi's Argentina in Extra-Time Thriller",
-    source: "sixbravo Sports",
+    source: "Global Sports",
     time: "4 hours ago",
     category: "Sports",
     imageUrl: "/images/spain_world_cup_win.jpg",
@@ -24,7 +24,7 @@ export const INITIAL_NEWS: NewsArticle[] = [
   {
     id: "trump-hormuz-fee-reversal",
     title: "Trump's 20% Hormuz Shipping Fee Lasted One Day. The Blockade Is Still Going.",
-    source: "sixbravo World",
+    source: "Global World",
     time: "6 hours ago",
     category: "World",
     imageUrl: "/images/hormuz_strait_tension.jpg",

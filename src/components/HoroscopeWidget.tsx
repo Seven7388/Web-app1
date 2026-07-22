@@ -44,7 +44,7 @@ export default function HoroscopeWidget() {
         <div className="flex items-center gap-2">
           <Compass className="w-5 h-5 text-indigo-600 animate-spin-slow animate-pulse" />
           <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">
-            sixbravo Horoscope
+            Global Horoscope
           </h4>
         </div>
         

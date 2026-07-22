@@ -60,7 +60,7 @@ export default function ArticleDetailView({ article, onBack }: ArticleDetailView
           className="inline-flex items-center gap-2 text-xs font-extrabold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100/80 px-4 py-2 rounded-xl transition-all"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to sixbravo Portal</span>
+          <span>Back to Global Portal</span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -174,8 +174,8 @@ export default function ArticleDetailView({ article, onBack }: ArticleDetailView
 
       {/* Modern footer with sixbravo branding */}
       <footer className="bg-slate-900 text-slate-400 py-10 px-6 mt-16 text-center border-t border-slate-800">
-        <p className="text-xs font-black text-white tracking-widest uppercase mb-2">sixbravo SMART PORTAL</p>
-        <p className="text-[11px] opacity-60">This content is published via sixbravo Editorial Agency feeds. All rights reserved © 2026.</p>
+        <p className="text-xs font-black text-white tracking-widest uppercase mb-2">GLOBAL SMART PORTAL</p>
+        <p className="text-[11px] opacity-60">This content is published via Global Editorial Agency feeds. All rights reserved © 2026.</p>
       </footer>
     </article>
   );

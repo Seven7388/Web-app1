@@ -91,28 +91,39 @@ app.post("/api/search", async (req, res) => {
 async function expandNewsArticleWithAI(title: string, snippet: string, category: string, source: string): Promise<string> {
   const ai = getGemini();
   if (!ai) {
-    return `${snippet}\n\nJournalists at ${source} report that developments regarding this situation are unfolding rapidly across regional and international sectors. Official commentators and domain experts are monitoring key indices as policy stakeholders evaluate long-term strategic frameworks.\n\nAccording to senior analysts, the broader implications of these events are expected to shape upcoming policy debates and market movements over the coming weeks. Representatives from ${source} noted that further updates will be issued as official statements are released.`;
+    return `${snippet}\n\nJournalists report that developments regarding this situation are unfolding rapidly across regional and international sectors. Official commentators and domain experts are monitoring key indices as policy stakeholders evaluate long-term strategic frameworks.\n\nAccording to senior analysts, the broader implications of these events are expected to shape upcoming policy debates and market movements over the coming weeks. Representatives noted that further updates will be issued as official statements are released.`;
   }
 
   try {
+    const systemInstruction = `
+      You are an experienced senior news editor at a major global news publication.
+      Your writing style is completely human, professional, engaging, and direct.
+      
+      STRICT WRITING RULES:
+      1. DO NOT include any intro or conversational filler (e.g., "Here is the article", "Sure, here's an expanded version").
+      2. DO NOT use generic AI template headings like "Introduction", "Overview", or "Conclusion". Use catchy, natural news subheadings instead.
+      3. Avoid repetitive, overused AI words such as "delve", "testament", "beacon", "tapestry", "nestled", "pivotal", "furthermore", or "in summary".
+      4. Write in continuous, natural human prose with varied sentence lengths. Include context, background, and expert-sounding analysis naturally within the text.
+      5. Return ONLY the article text formatted in clean Markdown.
+      6. Do NOT mention AI, Gemini, prompts, or language models under any circumstances.
+    `;
+
+    const prompt = `
+      Headline: ${title}
+      Category: ${category || "General"}
+      Original Source: ${source || "News Desk"}
+      Core Context/Snippet: ${snippet || "Expand on this headline."}
+
+      Write a thorough 400 to 500-word news article expanding on the above context.
+    `;
+
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: `You are an elite, objective senior news journalist writing for sixbravo News Desk.
-
-Headline: "${title}"
-Initial Snippet: "${snippet}"
-Category: "${category}"
-Original Source: "${source}"
-
-Task: Expand this short headline snippet into a comprehensive, highly detailed, objective 3 to 4 paragraph news story.
-
-Guidelines:
-- Provide rich contextual analysis, background details, and clear journalistic narrative.
-- Output ONLY the body text of the expanded article.
-- Separate paragraphs with double newlines (\\n\\n).
-- Maintain an authoritative, professional journalistic voice.
-- Do NOT include titles, author headers, markdown tags, or bullet points.
-- Do NOT mention AI, Gemini, prompts, or language models under any circumstances.`
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        systemInstruction: systemInstruction,
+        temperature: 0.7,
+      }
     });
 
     return response.text?.trim() || snippet;
@@ -128,14 +139,15 @@ app.get("/api/news/headlines", async (req, res) => {
     const worldNewsApiKey = process.env.WORLD_NEWS_API_KEY || "849dc762be924ca1a5d3159773975bb0";
     const newsDataApiKey = process.env.NEWSDATA_API_KEY || "pub_2e9086fb4c504189aeda50f4a73668d4";
 
-    let articles: any[] = [];
+    let worldNewsArticles: any[] = [];
+    let newsDataArticles: any[] = [];
 
     if (worldNewsApiKey) {
         // Fetch from World News API
         const response = await fetch(`https://api.worldnewsapi.com/top-news?source-country=us&language=en&api-key=${worldNewsApiKey}`);
         const data = await response.json();
         if (data.top_news && data.top_news.length > 0 && data.top_news[0].news) {
-            articles.push(...data.top_news[0].news.map((art: any) => ({
+            worldNewsArticles.push(...data.top_news[0].news.map((art: any) => ({
                 id: String(art.id) || art.url,
                 title: art.title,
                 content: art.text,
@@ -152,7 +164,7 @@ app.get("/api/news/headlines", async (req, res) => {
         const response = await fetch(`https://newsdata.io/api/1/latest?apikey=${newsDataApiKey}&language=en`);
         const data = await response.json();
         if (data.results) {
-            articles.push(...data.results.map((art: any) => ({
+            newsDataArticles.push(...data.results.map((art: any) => ({
                 id: art.article_id,
                 title: art.title,
                 content: art.description || art.content,
@@ -164,8 +176,13 @@ app.get("/api/news/headlines", async (req, res) => {
         }
     }
 
+    const articles = [
+        ...worldNewsArticles.slice(0, 5),
+        ...newsDataArticles.slice(0, 5)
+    ];
+
     // Background Journalist: Expand all article snippets into full news stories
-    const articlesToProcess = articles.slice(0, 10);
+    const articlesToProcess = articles;
     const expandedArticles = await Promise.all(
       articlesToProcess.map(async (art) => {
         const fullStory = await expandNewsArticleWithAI(
@@ -200,7 +217,7 @@ app.post("/api/news/expand", async (req, res) => {
       title,
       content || title,
       category || "General",
-      source || "sixbravo News"
+      source || "Global News"
     );
     res.json({ expandedContent: fullStory });
   } catch (err) {
@@ -225,7 +242,13 @@ app.post("/api/news/summarize", async (req, res) => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
-      contents: `You are an editor for sixbravo news. Please summarize this article into 3 clear, highly punchy, bullet points.
+      contents: `You are an editor for Global Editorial News. Please summarize this article into 3 clear, highly punchy, bullet points.
+      
+      STRICT RULES:
+      1. Return ONLY the 3 bullet points. 
+      2. DO NOT include any intro like "Here is the summary" or "Sure, I can help".
+      3. Do NOT mention AI.
+      
       Title: "${title}"
       Content: "${content}"`,
     });
@@ -295,7 +318,13 @@ app.post("/api/mail/generate", async (req, res) => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
-      contents: `You are sixbravo Mail AI assistant. Write a polished, modern, professional email.
+      contents: `You are a professional Mail AI assistant. Write a polished, modern, professional email.
+      
+      STRICT RULES:
+      1. Return ONLY the email text.
+      2. DO NOT include any conversational intro like "Here is the email".
+      3. Do NOT mention AI.
+
       Prompt/Instruction: "${prompt}"
       To: "${recipient || "Recipient"}"
       Subject Context: "${subject || "N/A"}"
@@ -314,7 +343,7 @@ app.post("/api/briefing", async (req, res) => {
   const ai = getGemini();
   if (!ai) {
     return res.json({
-      briefing: `Good morning! Welcome to your bespoke daily digest. Here is your quick sixbravo digest:\n\n☀️ **Weather:** It's currently ${weatherTemp}°C and ${weatherCondition} in ${weatherCity}.\n📈 **Finance:** Markets are stable. SXB stock is trading positive. Enjoy your day!`
+      briefing: `Good morning! Welcome to your bespoke daily digest. Here is your quick digest:\n\n☀️ **Weather:** It's currently ${weatherTemp}°C and ${weatherCondition} in ${weatherCity}.\n📈 **Finance:** Markets are stable. Enjoy your day!`
     });
   }
 
@@ -322,19 +351,25 @@ app.post("/api/briefing", async (req, res) => {
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
       contents: `Create an elegant, highly engaging daily briefing. Begin the response with 'Good morning! Welcome to your bespoke daily digest.' Do NOT mention the name "Godfrey" or any other name anywhere in the greeting or text. Keep it completely anonymous.
+      
+      STRICT RULES:
+      1. DO NOT include any conversational filler like "Here is the daily briefing".
+      2. Start exactly with 'Good morning! Welcome to your bespoke daily digest.'
+      3. Do NOT mention AI.
+
       Current Weather in ${weatherCity}: ${weatherTemp}°C, ${weatherCondition}.
       Trending Stocks: ${JSON.stringify(topStocks)}.
       Format this as a sleek, professional daily digest with visual bullet points and friendly premium encouragement. Keep it concise.`,
     });
     res.json({ briefing: response.text });
   } catch (error) {
-    res.json({ briefing: "Welcome to sixbravo! Have a fantastic day ahead!" });
+    res.json({ briefing: "Welcome to Global Portal! Have a fantastic day ahead!" });
   }
 });
 
 // Serve health check
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", service: "sixbravo" });
+  res.json({ status: "ok", service: "global-portal" });
 });
 
 // Configure development and production modes

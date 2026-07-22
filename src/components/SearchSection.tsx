@@ -18,7 +18,7 @@ export default function SearchSection({ query, onBackToHome, onSearch }: SearchS
   const loadingPhrases = [
     "Broadcasting search queries to global indexes...",
     "Retrieving grounded web references...",
-    "Consulting sixbravo smart directory...",
+    "Consulting Global smart directory...",
     "Synthesizing high-fidelity portal summary...",
     "Verifying real-time citations and security clearances..."
   ];
@@ -84,7 +84,7 @@ export default function SearchSection({ query, onBackToHome, onSearch }: SearchS
           </button>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-indigo-600 animate-pulse" />
-            sixbravo <span className="text-indigo-600">AI Search Core</span>
+            Global Portal <span className="text-indigo-600">AI Search Core</span>
           </h2>
           <p className="text-slate-500 text-sm mt-1">
             Grounded real-time query results for: <span className="font-semibold text-slate-800">"{query}"</span>

@@ -258,7 +258,7 @@ export default function NewsSection({ articles, onSelectArticle }: NewsSectionPr
                 <Eye className="w-3.5 h-3.5 text-gray-400" />
                 Verified Agency Feed
               </span>
-              <span>© 2026 sixbravo Media Corp.</span>
+              <span>© 2026 Global Media Corp.</span>
             </div>
 
           </div>

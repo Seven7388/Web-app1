@@ -212,7 +212,7 @@ export default function App() {
             </div>
 
             <div className="pt-4 border-t border-slate-100 mt-4 px-3 text-[10px] text-slate-400 font-medium space-y-1">
-              <p>© 2026 sixbravo Inc.</p>
+              <p>© 2026 Global Portal Inc.</p>
               <button onClick={() => handleOpenPage("privacy-policy")} className="hover:underline">Privacy Policy</button>
             </div>
           </nav>
@@ -262,7 +262,7 @@ export default function App() {
           {activeTab === "news" && (
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm" id="news-tab">
               <div className="border-b border-slate-150 pb-4 mb-6 text-left">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">sixbravo Editorial News</h3>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Global Editorial News</h3>
                 <p className="text-xs text-slate-400 mt-1 font-medium">Real-time global reporting across politics, tech, finance, and entertainment.</p>
               </div>
               <NewsSection articles={news} onSelectArticle={handleOpenArticle} />

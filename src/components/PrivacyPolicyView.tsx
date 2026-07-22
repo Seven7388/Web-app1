@@ -136,7 +136,7 @@ export default function PrivacyPolicyView({ onBack }: PrivacyPolicyViewProps) {
       </div>
 
       <footer className="bg-slate-900 text-slate-400 py-10 px-6 mt-16 text-center border-t border-slate-800">
-        <p className="text-xs font-black text-white tracking-widest uppercase mb-2">sixbravo SMART PORTAL</p>
+        <p className="text-xs font-black text-white tracking-widest uppercase mb-2">GLOBAL SMART PORTAL</p>
         <p className="text-[11px] opacity-60">© 2026 Sixbravo.</p>
       </footer>
     </article>

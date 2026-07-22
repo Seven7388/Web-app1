@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
 import SearchSection from "./components/SearchSection";
 import NewsSection from "./components/NewsSection";
-import FinanceSection from "./components/FinanceSection";
+
 import WeatherSection from "./components/WeatherSection";
 import HoroscopeWidget from "./components/HoroscopeWidget";
 import ArticleDetailView from "./components/ArticleDetailView";
@@ -149,7 +149,6 @@ export default function App() {
   const navItems = [
     { id: "home", label: "Dashboard", icon: Home },
     { id: "news", label: "Newsroom", icon: Newspaper },
-    { id: "finance", label: "Finance & Markets", icon: TrendingUp },
     { id: "weather", label: "Weather Radar", icon: CloudSun }
   ];
 
@@ -160,7 +159,6 @@ export default function App() {
       <div className="bg-indigo-900 text-white text-[11px] px-4 py-1.5 flex justify-between items-center z-50">
         <div className="flex space-x-4">
           <span className="font-bold cursor-pointer hover:opacity-100" onClick={() => setActiveTab("news")}>News</span>
-          <span className="opacity-80 cursor-pointer hover:opacity-100" onClick={() => setActiveTab("finance")}>Finance</span>
           <span className="opacity-80 cursor-pointer hover:opacity-100" onClick={() => setActiveTab("weather")}>Weather Radar</span>
           <span className="opacity-60 hidden sm:inline">Sports</span>
           <span className="opacity-60 hidden sm:inline">Entertainment</span>
@@ -271,13 +269,6 @@ export default function App() {
                       <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">
                         Markets quick-look
                       </h4>
-                      <button
-                        onClick={() => setActiveTab("finance")}
-                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
-                      >
-                        Finance Desk
-                        <ArrowUpRight className="w-3.5 h-3.5" />
-                      </button>
                     </div>
 
                     <div className="space-y-2.5">
@@ -286,8 +277,7 @@ export default function App() {
                         return (
                           <div
                             key={stk.symbol}
-                            onClick={() => setActiveTab("finance")}
-                            className="flex items-center justify-between p-2.5 bg-slate-50/50 hover:bg-indigo-50/20 rounded-xl cursor-pointer transition-colors border border-transparent hover:border-indigo-100"
+                            className="flex items-center justify-between p-2.5 bg-slate-50/50 rounded-xl transition-colors border border-transparent"
                           >
                             <div>
                               <p className="text-xs font-black text-gray-950 font-mono leading-none">{stk.symbol}</p>
@@ -320,16 +310,6 @@ export default function App() {
                 <p className="text-xs text-slate-400 mt-1 font-medium">Real-time global reporting across politics, tech, finance, and entertainment.</p>
               </div>
               <NewsSection articles={news} onSelectArticle={handleOpenArticle} />
-            </div>
-          )}
-
-          {activeTab === "finance" && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm" id="finance-tab">
-              <div className="border-b border-slate-150 pb-4 mb-6 text-left">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">sixbravo Financial Markets</h3>
-                <p className="text-xs text-slate-400 mt-1 font-medium">Live market tickers, interactive stock charts, and paper portfolio trading.</p>
-              </div>
-              <FinanceSection stocks={stocks} onUpdateStocks={setStocks} />
             </div>
           )}
 

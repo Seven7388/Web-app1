@@ -133,9 +133,18 @@ async function expandNewsArticleWithAI(title: string, snippet: string, category:
   }
 }
 
+// Simple in-memory cache to avoid Gemini API rate limits
+const newsCache: { timestamp: number; data: any[] } = { timestamp: 0, data: [] };
+
 // News API Proxy
 app.get("/api/news/headlines", async (req, res) => {
   try {
+    // Return cached data if it's less than 15 minutes old
+    const now = Date.now();
+    if (now - newsCache.timestamp < 15 * 60 * 1000 && newsCache.data.length > 0) {
+        return res.json({ articles: newsCache.data });
+    }
+
     const worldNewsApiKey = process.env.WORLD_NEWS_API_KEY || "849dc762be924ca1a5d3159773975bb0";
     const newsDataApiKey = process.env.NEWSDATA_API_KEY || "pub_2e9086fb4c504189aeda50f4a73668d4";
     const currentsApiKey = process.env.CURRENTS_API_KEY || "FxenpFkFGgabIyvaP05YMkYkm9IQzuP6B_JJlZDAO-wpTUDM";
@@ -150,16 +159,21 @@ app.get("/api/news/headlines", async (req, res) => {
         // Fetch from World News API
         const response = await fetch(`https://api.worldnewsapi.com/top-news?source-country=us&language=en&api-key=${worldNewsApiKey}`);
         const data = await response.json();
-        if (data.top_news && data.top_news.length > 0 && data.top_news[0].news) {
-            worldNewsArticles.push(...data.top_news[0].news.map((art: any) => ({
-                id: String(art.id) || art.url,
-                title: art.title,
-                content: art.text,
-                imageUrl: art.image,
-                source: art.author || "World News",
-                category: "General",
-                time: "Recently"
-            })));
+        if (data.top_news && data.top_news.length > 0) {
+            data.top_news.forEach((cluster: any) => {
+                if (cluster.news && cluster.news.length > 0) {
+                    const art = cluster.news[0];
+                    worldNewsArticles.push({
+                        id: String(art.id) || art.url,
+                        title: art.title,
+                        content: art.text,
+                        imageUrl: art.image,
+                        source: art.author || "World News",
+                        category: "General",
+                        time: "Recently"
+                    });
+                }
+            });
         }
     }
 
@@ -224,29 +238,48 @@ app.get("/api/news/headlines", async (req, res) => {
         }
     }
 
-    const articles = [
-        ...worldNewsArticles.slice(0, 5),
-        ...newsDataArticles.slice(0, 5),
-        ...currentsArticles.slice(0, 5),
-        ...theNewsArticles.slice(0, 5)
+    const allArticles = [
+        ...worldNewsArticles,
+        ...newsDataArticles,
+        ...currentsArticles,
+        ...theNewsArticles
     ];
 
+    // Deduplicate by title similarity
+    const uniqueArticlesMap = new Map<string, any>();
+    for (const art of allArticles) {
+        if (!art.title) continue;
+        const normTitle = art.title.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 40);
+        if (!uniqueArticlesMap.has(normTitle)) {
+            uniqueArticlesMap.set(normTitle, art);
+        }
+    }
+
+    const uniqueArticles = Array.from(uniqueArticlesMap.values()).slice(0, 8); // Max 8 to stay within rate limits
+
     // Background Journalist: Expand all article snippets into full news stories
-    const articlesToProcess = articles;
-    const expandedArticles = await Promise.all(
-      articlesToProcess.map(async (art) => {
+    const expandedArticles = [];
+    
+    for (const art of uniqueArticles) {
+        // Sequentially to avoid rate limiting
         const fullStory = await expandNewsArticleWithAI(
           art.title,
           art.content || art.title,
           art.category,
           art.source
         );
-        return {
+        expandedArticles.push({
           ...art,
           content: fullStory
-        };
-      })
-    );
+        });
+        
+        // Small delay between requests
+        await new Promise(r => setTimeout(r, 500));
+    }
+
+    // Update cache
+    newsCache.timestamp = Date.now();
+    newsCache.data = expandedArticles;
 
     res.json({ articles: expandedArticles });
   } catch (error) {

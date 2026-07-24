@@ -7,6 +7,8 @@ import WeatherSection from "./components/WeatherSection";
 import HoroscopeWidget from "./components/HoroscopeWidget";
 import ArticleDetailView from "./components/ArticleDetailView";
 import PrivacyPolicyView from "./components/PrivacyPolicyView";
+import TermsOfServiceView from "./components/TermsOfServiceView";
+import CookieBanner from "./components/CookieBanner";
 import { Home, Newspaper, TrendingUp, CloudSun, Sparkles, User, Settings, ArrowUpRight, ArrowDownRight, Info } from "lucide-react";
 
 export default function App() {
@@ -100,6 +102,14 @@ export default function App() {
       <ArticleDetailView
         article={currentArticle}
         onBack={handleCloseArticle}
+      />
+    );
+  }
+
+  if (activePage === "terms-of-service") {
+    return (
+      <TermsOfServiceView
+        onBack={handleClosePage}
       />
     );
   }
@@ -213,7 +223,11 @@ export default function App() {
 
             <div className="pt-4 border-t border-slate-100 mt-4 px-3 text-[10px] text-slate-400 font-medium space-y-1">
               <p>© 2026 Global Portal Inc.</p>
-              <button onClick={() => handleOpenPage("privacy-policy")} className="hover:underline">Privacy Policy</button>
+              <div className="flex gap-2">
+                <button onClick={() => handleOpenPage("privacy-policy")} className="hover:underline">Privacy Policy</button>
+                <span>&middot;</span>
+                <button onClick={() => handleOpenPage("terms-of-service")} className="hover:underline">Terms of Service</button>
+              </div>
             </div>
           </nav>
         </aside>
@@ -314,13 +328,12 @@ export default function App() {
                 isSelected ? "text-indigo-600 scale-105 font-bold" : "text-slate-400"
               }`}
             >
-              <Icon className="w-5 h-5" />
               <span className="text-[9px] font-bold mt-1 leading-none">{item.label.split(" ")[0]}</span>
             </button>
           );
         })}
       </div>
-
+      <CookieBanner />
     </div>
   );
 }

@@ -453,7 +453,7 @@ app.post("/api/briefing", async (req, res) => {
 // Serve health check
 
 // Rapid API Endpoints
-const rapidApiKey = "30dd6f5bbcmshc17011ac86de619p1a2ea8jsn2452ea58d58d";
+const rapidApiKey = process.env.RAPIDAPI_KEY || "30dd6f5bbcmshc17011ac86de619p1a2ea8jsn2452ea58d58d";
 
 app.post("/api/rapid/newsnow", async (req, res) => {
     try {

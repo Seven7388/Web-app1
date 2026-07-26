@@ -2,14 +2,16 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
+import cors from "cors";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Lazy initialize Gemini client to prevent crashes if key is not yet set
 let aiClient: GoogleGenAI | null = null;
@@ -133,158 +135,70 @@ async function expandNewsArticleWithAI(title: string, snippet: string, category:
   }
 }
 
-// Simple in-memory cache to avoid Gemini API rate limits
-const newsCache: { timestamp: number; data: any[] } = { timestamp: 0, data: [] };
 
-// News API Proxy
+function mapGuardianCategory(sectionId: string): string {
+  const sec = (sectionId || "").toLowerCase();
+  if (sec.includes("tech") || sec.includes("technology")) return "Tech";
+  if (sec.includes("football")) return "Football";
+  if (sec.includes("sport")) return "Sport";
+  if (sec.includes("business")) return "Business";
+  if (sec.includes("money")) return "Money";
+  if (sec.includes("culture") || sec.includes("film") || sec.includes("music") || sec.includes("books")) return "Culture";
+  if (sec.includes("lifestyle") || sec.includes("fashion") || sec.includes("food")) return "Lifestyle";
+  if (sec.includes("environment") || sec.includes("climate")) return "Environment";
+  if (sec.includes("science")) return "Science";
+  if (sec.includes("politics")) return "Politics";
+  if (sec.includes("world")) return "World news";
+  if (sec.includes("travel")) return "Travel";
+  return "News";
+}
+
 app.get("/api/news", async (req, res) => {
+  const categoryParam = ((req.query.category as string) || "all").toLowerCase();
+
+  let sectionQuery = "";
+  if (categoryParam === "tech" || categoryParam === "technology") sectionQuery = "&section=technology";
+  else if (categoryParam === "football") sectionQuery = "&section=football";
+  else if (categoryParam === "sport") sectionQuery = "&section=sport";
+  else if (categoryParam === "business") sectionQuery = "&section=business";
+  else if (categoryParam === "money") sectionQuery = "&section=money";
+  else if (categoryParam === "culture") sectionQuery = "&section=culture";
+  else if (categoryParam === "lifestyle") sectionQuery = "&section=lifestyle";
+  else if (categoryParam === "environment" || categoryParam === "climate crisis") sectionQuery = "&section=environment";
+  else if (categoryParam === "science") sectionQuery = "&section=science";
+  else if (categoryParam === "politics" || categoryParam === "us politics" || categoryParam === "uk politics") sectionQuery = "&section=politics";
+  else if (categoryParam === "world news" || categoryParam === "world") sectionQuery = "&section=world";
+  else if (categoryParam === "travel") sectionQuery = "&section=travel";
+
   try {
-    // Return cached data if it's less than 15 minutes old
-    const now = Date.now();
-    if (now - newsCache.timestamp < 15 * 60 * 1000 && newsCache.data.length > 0) {
-        return res.json({ articles: newsCache.data });
+    const apiKey = process.env.GUARDIAN_API_KEY || "test";
+    const response = await fetch(
+      `https://content.guardianapis.com/search?show-fields=thumbnail,trailText,body&page-size=30${sectionQuery}&api-key=${apiKey}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Guardian API error: ${response.statusText}`);
     }
 
-    const worldNewsApiKey = process.env.WORLD_NEWS_API_KEY || "849dc762be924ca1a5d3159773975bb0";
-    const newsDataApiKey = process.env.NEWSDATA_API_KEY || "pub_2e9086fb4c504189aeda50f4a73668d4";
-    const currentsApiKey = process.env.CURRENTS_API_KEY || "FxenpFkFGgabIyvaP05YMkYkm9IQzuP6B_JJlZDAO-wpTUDM";
-    const theNewsApiKey = process.env.THENEWS_API_KEY || "sxX0BHciBmEl7rKlirjO7CgDPmcsCBxasxQAlKmu";
+    const data = await response.json();
+    const results = data.response?.results || [];
 
-    let worldNewsArticles: any[] = [];
-    let newsDataArticles: any[] = [];
-    let currentsArticles: any[] = [];
-    let theNewsArticles: any[] = [];
+    const articles = results.map((item: any) => ({
+      id: item.id,
+      title: item.webTitle,
+      description: item.fields?.trailText?.replace(/<[^>]*>?/gm, '') || item.webTitle,
+      content: item.fields?.body?.replace(/<[^>]*>?/gm, '') || item.fields?.trailText || item.webTitle,
+      url: item.webUrl,
+      imageUrl: item.fields?.thumbnail || "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=800&q=80",
+      category: mapGuardianCategory(item.sectionId),
+      source: "The Guardian",
+      time: new Date(item.webPublicationDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }));
 
-    if (worldNewsApiKey) {
-        // Fetch from World News API
-        const response = await fetch(`https://api.worldnewsapi.com/top-news?source-country=us&language=en&api-key=${worldNewsApiKey}`);
-        const data = await response.json();
-        if (data.top_news && data.top_news.length > 0) {
-            data.top_news.forEach((cluster: any) => {
-                if (cluster.news && cluster.news.length > 0) {
-                    const art = cluster.news[0];
-                    worldNewsArticles.push({
-                        id: String(art.id) || art.url,
-                        title: art.title,
-                        content: art.text,
-                        imageUrl: art.image,
-                        source: art.author || "World News",
-                        category: "General",
-                        time: "Recently"
-                    });
-                }
-            });
-        }
-    }
-
-    if (newsDataApiKey) {
-        // Fetch from NewsData.io
-        const response = await fetch(`https://newsdata.io/api/1/latest?apikey=${newsDataApiKey}&language=en`);
-        const data = await response.json();
-        if (data.results) {
-            newsDataArticles.push(...data.results.map((art: any) => ({
-                id: art.article_id,
-                title: art.title,
-                content: art.description || art.content,
-                imageUrl: art.image_url,
-                source: art.source_id || "NewsData",
-                category: art.category ? art.category[0] : "General",
-                time: "Recently"
-            })));
-        }
-    }
-
-    if (currentsApiKey) {
-        try {
-            const response = await fetch(`https://api.currentsapi.services/v1/latest-news?language=en`, {
-                headers: {
-                    "Authorization": currentsApiKey
-                }
-            });
-            const data = await response.json();
-            if (data.news) {
-                currentsArticles.push(...data.news.map((art: any) => ({
-                    id: art.id,
-                    title: art.title,
-                    content: art.description,
-                    imageUrl: art.image,
-                    source: art.author || "Currents",
-                    category: art.category ? art.category.join(", ") : "General",
-                    time: "Recently"
-                })));
-            }
-        } catch (e) {
-            console.error("Currents API error:", e);
-        }
-    }
-
-    if (theNewsApiKey) {
-        try {
-            const response = await fetch(`https://api.thenewsapi.com/v1/news/all?api_token=${theNewsApiKey}&language=en`);
-            const data = await response.json();
-            if (data.data) {
-                theNewsArticles.push(...data.data.map((art: any) => ({
-                    id: art.uuid,
-                    title: art.title,
-                    content: art.description || art.snippet,
-                    imageUrl: art.image_url,
-                    source: art.source || "TheNewsAPI",
-                    category: "General",
-                    time: "Recently"
-                })));
-            }
-        } catch (e) {
-            console.error("TheNewsAPI error:", e);
-        }
-    }
-
-    const allArticles = [
-        ...worldNewsArticles,
-        ...newsDataArticles,
-        ...currentsArticles,
-        ...theNewsArticles
-    ];
-
-    // Deduplicate by title similarity
-    const uniqueArticlesMap = new Map<string, any>();
-    for (const art of allArticles) {
-        if (!art.title) continue;
-        const normTitle = art.title.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 40);
-        if (!uniqueArticlesMap.has(normTitle)) {
-            uniqueArticlesMap.set(normTitle, art);
-        }
-    }
-
-    const uniqueArticles = Array.from(uniqueArticlesMap.values()).slice(0, 8); // Max 8 to stay within rate limits
-
-    // Background Journalist: Expand all article snippets into full news stories
-    const expandedArticles = [];
-    
-    for (const art of uniqueArticles) {
-        // Sequentially to avoid rate limiting
-        const fullStory = await expandNewsArticleWithAI(
-          art.title,
-          art.content || art.title,
-          art.category,
-          art.source
-        );
-        expandedArticles.push({
-          ...art,
-          content: fullStory
-        });
-        
-        // Small delay between requests
-        await new Promise(r => setTimeout(r, 500));
-    }
-
-    // Update cache
-    newsCache.timestamp = Date.now();
-    newsCache.data = expandedArticles;
-
-    res.json({ articles: expandedArticles });
+    res.json({ articles });
   } catch (error) {
-    console.error("News fetch failed:", error);
-    res.status(500).json({ error: "Failed to fetch news" });
+    console.error("Error fetching Guardian news:", error);
+    res.status(500).json({ error: "Failed to fetch news stories" });
   }
 });
 

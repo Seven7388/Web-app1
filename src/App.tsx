@@ -81,7 +81,7 @@ export default function App() {
   const [news, setNews] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch("/api/news/headlines")
+    fetch("/api/news")
       .then(res => res.json())
       .then(data => {
         if(data.articles && data.articles.length > 0) {

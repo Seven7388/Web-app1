@@ -137,7 +137,7 @@ async function expandNewsArticleWithAI(title: string, snippet: string, category:
 const newsCache: { timestamp: number; data: any[] } = { timestamp: 0, data: [] };
 
 // News API Proxy
-app.get("/api/news/headlines", async (req, res) => {
+app.get("/api/news", async (req, res) => {
   try {
     // Return cached data if it's less than 15 minutes old
     const now = Date.now();

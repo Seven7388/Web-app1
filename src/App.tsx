@@ -8,6 +8,7 @@ import HoroscopeWidget from "./components/HoroscopeWidget";
 import ArticleDetailView from "./components/ArticleDetailView";
 import PrivacyPolicyView from "./components/PrivacyPolicyView";
 import TermsOfServiceView from "./components/TermsOfServiceView";
+import CookiePolicyView from "./components/CookiePolicyView";
 import CookieBanner from "./components/CookieBanner";
 import { Home, Newspaper, TrendingUp, CloudSun, Sparkles, User, Settings, ArrowUpRight, ArrowDownRight, Info } from "lucide-react";
 
@@ -102,6 +103,15 @@ export default function App() {
       <ArticleDetailView
         article={currentArticle}
         onBack={handleCloseArticle}
+      />
+    );
+  }
+
+  
+  if (activePage === "cookie-policy") {
+    return (
+      <CookiePolicyView
+        onBack={handleClosePage}
       />
     );
   }
@@ -225,6 +235,8 @@ export default function App() {
               <p>© 2026 Global Portal Inc.</p>
               <div className="flex gap-2">
                 <button onClick={() => handleOpenPage("privacy-policy")} className="hover:underline">Privacy Policy</button>
+                <span>&middot;</span>
+                <button onClick={() => handleOpenPage("cookie-policy")} className="hover:underline">Cookie Policy</button>
                 <span>&middot;</span>
                 <button onClick={() => handleOpenPage("terms-of-service")} className="hover:underline">Terms of Service</button>
               </div>

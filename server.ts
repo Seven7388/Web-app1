@@ -11,7 +11,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 // Lazy initialize Gemini client to prevent crashes if key is not yet set
 let aiClient: GoogleGenAI | null = null;
@@ -429,6 +429,35 @@ app.get("/api/rapid/football", async (req, res) => {
         console.error(e);
         res.status(500).json({ error: "Football News API error" });
     }
+});
+
+app.get("/sitemap.xml", (req, res) => {
+  res.header("Content-Type", "application/xml");
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://sixbravo.qzz.io/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://sixbravo.qzz.io/news</loc>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://sixbravo.qzz.io/weather</loc>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>`);
+});
+
+app.get("/robots.txt", (req, res) => {
+  res.header("Content-Type", "text/plain");
+  res.send(`User-agent: *
+Allow: /
+Sitemap: https://sixbravo.qzz.io/sitemap.xml`);
 });
 
 app.get("/api/health", (req, res) => {

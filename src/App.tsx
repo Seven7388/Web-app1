@@ -15,6 +15,8 @@ import { Home, Newspaper, TrendingUp, CloudSun, Sparkles, User, Settings, ArrowU
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>("home");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
+  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
 
   const [activeArticleId, setActiveArticleId] = useState<string | null>(() => {
     const params = new URLSearchParams(window.location.search);
@@ -165,18 +167,18 @@ export default function App() {
       
       {/* Top Global Bar */}
       <div className="bg-indigo-900 text-white text-[11px] px-4 py-1.5 flex justify-between items-center z-50">
-        <div className="flex space-x-4">
-          <span className="font-bold cursor-pointer hover:opacity-100" onClick={() => setActiveTab("news")}>News</span>
-          <span className="opacity-80 cursor-pointer hover:opacity-100" onClick={() => setActiveTab("weather")}>Weather Radar</span>
-          <span className="opacity-60 hidden sm:inline">Sports</span>
-          <span className="opacity-60 hidden sm:inline">Entertainment</span>
-          <span className="opacity-60 hidden md:inline">Life</span>
-          <span className="opacity-60 hidden md:inline">Shopping</span>
-          <span className="text-yellow-400 font-bold">★ More</span>
+        <div className="flex space-x-4 items-center">
+          <span className="font-bold cursor-pointer hover:text-yellow-300 transition-colors" onClick={() => { setActiveTab("news"); setSearchQuery(""); }}>News</span>
+          <span className="opacity-85 cursor-pointer hover:text-yellow-300 transition-colors" onClick={() => { setActiveTab("weather"); setSearchQuery(""); }}>Weather Radar</span>
+          <span className="opacity-75 cursor-pointer hover:text-yellow-300 transition-colors hidden sm:inline" onClick={() => { setActiveTab("news"); setSearchQuery("Sports"); }}>Sports</span>
+          <span className="opacity-75 cursor-pointer hover:text-yellow-300 transition-colors hidden sm:inline" onClick={() => { setActiveTab("news"); setSearchQuery("Entertainment"); }}>Entertainment</span>
+          <span className="opacity-75 cursor-pointer hover:text-yellow-300 transition-colors hidden md:inline" onClick={() => { setActiveTab("news"); setSearchQuery("Life"); }}>Life</span>
+          <span className="opacity-75 cursor-pointer hover:text-yellow-300 transition-colors hidden md:inline" onClick={() => { setActiveTab("news"); setSearchQuery("Shopping"); }}>Shopping</span>
+          <span className="text-yellow-400 font-bold cursor-pointer hover:underline" onClick={() => { setActiveTab("news"); setSearchQuery(""); }}>★ More</span>
         </div>
-        <div className="flex space-x-4">
-          <span className="opacity-80 hover:underline cursor-pointer">Help</span>
-          <span className="opacity-80 hover:underline cursor-pointer">Settings</span>
+        <div className="flex space-x-4 items-center">
+          <span className="opacity-85 hover:underline cursor-pointer" onClick={() => setShowHelpModal(true)}>Help</span>
+          <span className="opacity-85 hover:underline cursor-pointer" onClick={() => setShowSettingsModal(true)}>Settings</span>
         </div>
       </div>
 
@@ -346,6 +348,84 @@ export default function App() {
         })}
       </div>
       <CookieBanner />
+
+      {/* Help Modal */}
+      {showHelpModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-xl border border-slate-100 text-left">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="text-lg font-black text-slate-900">Help & Support</h3>
+              <button onClick={() => setShowHelpModal(false)} className="text-slate-400 hover:text-slate-700 font-bold text-lg">×</button>
+            </div>
+            <div className="space-y-3 text-sm text-slate-600">
+              <p>Welcome to <strong>sixbravo smart portal</strong>. Here is how you can navigate and use our features:</p>
+              <ul className="list-disc pl-5 space-y-1.5 text-xs">
+                <li><strong>Dashboard</strong>: Overview of top news briefings, markets, and quick weather widgets.</li>
+                <li><strong>Newsroom</strong>: Explore full articles curated from top global news sources.</li>
+                <li><strong>Weather Radar</strong>: Check real-time weather conditions and forecasts across major world cities.</li>
+                <li><strong>Top Navigation</strong>: Click any category (News, Sports, Entertainment, Life, Shopping) to instantly filter or switch views.</li>
+              </ul>
+              <p className="text-xs text-slate-500 pt-2 border-t border-slate-100">For further inquiries, contact support at support@sixbravo.io.</p>
+            </div>
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="bg-indigo-700 text-white font-bold text-xs px-5 py-2 rounded-xl hover:bg-indigo-800 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-xl border border-slate-100 text-left">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="text-lg font-black text-slate-900">Portal Settings</h3>
+              <button onClick={() => setShowSettingsModal(false)} className="text-slate-400 hover:text-slate-700 font-bold text-lg">×</button>
+            </div>
+            <div className="space-y-4 text-sm text-slate-600">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Default City</label>
+                <input
+                  type="text"
+                  value={currentCity}
+                  onChange={(e) => handleChangeWeather(e.target.value, currentTemp)}
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase">Preferences</label>
+                <div className="flex items-center justify-between text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <span>Enable Live Weather Ticker</span>
+                  <input type="checkbox" defaultChecked className="accent-indigo-700" />
+                </div>
+                <div className="flex items-center justify-between text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <span>High-Contrast Dark Accents</span>
+                  <input type="checkbox" className="accent-indigo-700" />
+                </div>
+              </div>
+            </div>
+            <div className="pt-2 flex justify-end gap-2">
+              <button
+                onClick={() => setShowSettingsModal(false)}
+                className="bg-slate-200 text-slate-700 font-bold text-xs px-5 py-2 rounded-xl hover:bg-slate-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowSettingsModal(false)}
+                className="bg-indigo-700 text-white font-bold text-xs px-5 py-2 rounded-xl hover:bg-indigo-800 transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
